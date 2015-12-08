@@ -8,7 +8,7 @@ $youtube = new youtube($v);
 
 echo '<h1>'.$youtube->title.'</h1>';
 
-echo '<img src="'.$youtube->images['small'].'">';
+echo '<img src="'.$youtube->images['mid'].'">';
 
 echo '<br><br>';
 
@@ -44,6 +44,8 @@ foreach($youtube->videos as $id => $video)
 	echo '<td>'.$video['bitrate'].'</td>';
 	echo '<td><a id="link'.$id.'" href="'.$video['url'].'&title='.urlencode($youtube->title).'" download="'.$youtube->title.'.'.strtolower($video['extention']).'">Right click &gt; Save as</a></td>';
 	echo '</tr>';
+	
+	echo "\r\n";
 }
 
 echo '</table>';
@@ -56,7 +58,7 @@ if(!empty($video['s']))
 	
 	foreach($youtube->videos as $id => $video)
 	{
-		echo 'document.getElementById("link'.$id.'").href += "&signature=" + '.$youtube->signature.'("'.$video['s'].'");';
+		echo 'document.getElementById("link'.$id.'").href += "&signature=" + '.$youtube->signature.'("'.$video['s'].'");'."\r\n";
 	}
 	
 	echo '</script>';
