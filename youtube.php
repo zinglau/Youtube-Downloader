@@ -12,10 +12,11 @@ class youtube
 	public $videos = array();
 	
 	private $sizes = array();
+	private $context = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false));  
 	
 	public function __construct($v = 'dQw4w9WgXcQ')
 	{
-		$contents = file_get_contents('https://www.youtube.com/watch?v='.$v);
+		$contents = file_get_contents('https://www.youtube.com/watch?v='.$v, false, stream_context_create($this->context));
 		
 		preg_match('#ytplayer\.config = (\{.+\});#U', $contents, $match);
 		
@@ -32,11 +33,11 @@ class youtube
 		$this->videos($config['args']['adaptive_fmts']);
 		$this->videos($config['args']['url_encoded_fmt_stream_map']);
 		
-		if(isset($config['args']['thumbnail_url'])) $this->images['thumb'] = $config['args']['thumbnail_url'];
-		if(isset($config['args']['iurlmq'])) $this->images['small'] = $config['args']['iurlmq'];
-		if(isset($config['args']['iurl'])) $this->images['medium'] = $config['args']['iurl'];
-		if(isset($config['args']['iurlsd'])) $this->images['hight'] = $config['args']['iurlsd'];
+		if(isset($config['args']['thumbnail_url'])) $this->images['min'] = $config['args']['thumbnail_url'];
 		if(isset($config['args']['iurlmaxres'])) $this->images['max'] = $config['args']['iurlmaxres'];
+		if(isset($config['args']['iurlmq'])) $this->images['low'] = $config['args']['iurlmq'];
+		if(isset($config['args']['iurl'])) $this->images['mid'] = $config['args']['iurl'];
+		if(isset($config['args']['iurlsd'])) $this->images['high'] = $config['args']['iurlsd'];
 	}
 	
 	private function sizes($fmts)
@@ -48,22 +49,22 @@ class youtube
 	
 	private function extention($type)
 	{
+		if(preg_match('#/3gpp#', $type)) return '3GP';
 		if(preg_match('#/webm#', $type)) return 'WEBM';
 		if(preg_match('#/x\-flv#', $type)) return 'FLV';
-		if(preg_match('#/3gpp#', $type)) return '3GP';
 		
 		return 'MP4';
 	}
 	
 	private function signature($js)
 	{
-		$contents = file_get_contents('http:'.$js);
+		$contents = file_get_contents('http:'.$js, false, stream_context_create($this->context));
 		
 		preg_match('#"signature",([A-Za-z]+)\(#U', $contents, $match);
 		
 		$this->signature = $match[1];
 		
-		$this->script = preg_replace('#^\(function\(\)\{(.+)\}\)\(\);$#s', '$1', $contents);
+		$this->script = preg_replace('#^var _yt_player=\{\};\(function\(g\){(.+)\}\)\(_yt_player\);$#s', '$1', $contents);
 	}
 	
 	private function videos($fmts)
@@ -95,13 +96,14 @@ class youtube
 				$video['type'] = 'video';
 			}
 			
+			if(!isset($video['s'])) $video['s'] = '';
 			if(!isset($video['fps'])) $video['fps'] = '-';
 			if(!isset($video['clen'])) $video['clen'] = '-';
 			if(!isset($video['bitrate'])) $video['bitrate'] = '-';
 			
 			$this->videos[] = array
 			(
-				's' => @$video['s'],
+				's' => $video['s'],
 				'url' => $video['url'],
 				'fps' => $video['fps'],
 				'itag' => $video['itag'],
