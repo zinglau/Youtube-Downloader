@@ -12,7 +12,7 @@ class youtube
 	public $videos = array();
 	
 	private $sizes = array();
-	private $context = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false));  
+	private $context = array('ssl' => array('verify_peer' => false));  
 	
 	public function __construct($v = 'dQw4w9WgXcQ')
 	{
