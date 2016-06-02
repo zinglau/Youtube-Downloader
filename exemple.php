@@ -50,18 +50,4 @@ foreach($youtube->videos as $id => $video)
 
 echo '</table>';
 
-if(!empty($video['s']))
-{
-	echo '<script>';
-	
-	echo $youtube->script;
-	
-	foreach($youtube->videos as $id => $video)
-	{
-		echo 'document.getElementById("link'.$id.'").href += "&signature=" + '.$youtube->signature.'("'.$video['s'].'");'."\r\n";
-	}
-	
-	echo '</script>';
-}
-
 ?>
