@@ -4,15 +4,14 @@ class youtube
 {
 	public $id = '';
 	public $title = '';
-	public $script = '';
 	public $duration = 0;
-	public $signature = '';
 	
 	public $images = array();
 	public $videos = array();
 	
 	private $sizes = array();
-	private $context = array('ssl' => array('verify_peer' => false));  
+	private $cipher = array();
+	private $context = array('ssl' => array('verify_peer' => false));
 	
 	public function __construct($v = 'dQw4w9WgXcQ')
 	{
@@ -28,7 +27,7 @@ class youtube
 		
 		$this->sizes($config['args']['fmt_list']);
 		
-		$this->signature($config['assets']['js']);
+		$this->cipher($config['assets']['js']);
 		
 		$this->videos($config['args']['adaptive_fmts']);
 		$this->videos($config['args']['url_encoded_fmt_stream_map']);
@@ -56,15 +55,60 @@ class youtube
 		return 'MP4';
 	}
 	
-	private function signature($js)
+	private function cipher($js)
 	{
 		$contents = file_get_contents('http:'.$js, false, stream_context_create($this->context));
 		
-		preg_match('#"signature",([A-Za-z]+)\(#U', $contents, $match);
+		preg_match('#"signature",([A-Za-z]+)#', $contents, $match);
+		$function = $match[1];
 		
-		$this->signature = $match[1];
+		preg_match('#([A-Za-z]+):function\(a\)\{a\.reverse\(\)\}#', $contents, $match);
+		$action[$match[1]] = 'reverse';
 		
-		$this->script = preg_replace('#^var _yt_player=\{\};\(function\(g\){(.+)\}\)\(_yt_player\);$#s', '$1', $contents);
+		preg_match('#([A-Za-z]+):function\(a,b\)\{a\.splice\(0,b\)\}#', $contents, $match);
+		$action[$match[1]] = 'slice';
+		
+		preg_match('#([A-Za-z]+):function\(a,b\)\{var c=a\[0\];a\[0\]=a\[b%a\.length\];a\[b\]=c\}#', $contents, $match);
+		$action[$match[1]] = 'swap';
+		
+		preg_match('#'.$function.'=function\(a\)\{a=a\.split\(""\);\n([^\}]+)return a\.join\(""\)}#', $contents, $match);
+		$contents = $match[1];
+		
+		preg_match_all('#[A-Za-z]+\.([A-Za-z]+)\(a,([0-9]+)\)#', $contents, $match);
+		
+		foreach($match[0] as $key => $temp)
+		{
+			$this->cipher[$key] = array
+			(
+				'action' => $action[$match[1][$key]],
+				'value' => $match[2][$key]
+			);
+		}
+	}
+	
+	private function signature($s)
+	{
+		foreach($this->cipher as $cipher)
+		{
+			if($cipher['action'] == 'swap')
+			{
+				$t = $s[0];
+				
+				$s[0] = $s[$cipher['value']%strlen($s)];
+				
+				$s[$cipher['value']] = $t;
+			}
+			else if($cipher['action'] == 'slice')
+			{
+				$s = substr($s, $cipher['value']);
+			}
+			else if($cipher['action'] == 'reverse')
+			{
+				$s = strrev($s);
+			}
+		}
+		
+		return $s;
 	}
 	
 	private function videos($fmts)
@@ -96,14 +140,17 @@ class youtube
 				$video['type'] = 'video';
 			}
 			
-			if(!isset($video['s'])) $video['s'] = '';
+			if(isset($video['s']))
+			{
+				$video['url'] .= '&signature='.$this->signature($video['s']);
+			}
+			
 			if(!isset($video['fps'])) $video['fps'] = '-';
 			if(!isset($video['clen'])) $video['clen'] = '-';
 			if(!isset($video['bitrate'])) $video['bitrate'] = '-';
 			
 			$this->videos[] = array
 			(
-				's' => $video['s'],
 				'url' => $video['url'],
 				'fps' => $video['fps'],
 				'itag' => $video['itag'],
