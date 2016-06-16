@@ -29,7 +29,7 @@ echo '<td>Bitrate</td>';
 echo '<td>Link</td>';
 echo '</tr>';
 
-foreach($youtube->videos as $id => $video)
+foreach($youtube->videos as $video)
 {
 	if($video['lenght'] != '-') $video['lenght'] = round($video['lenght']/1048576, 2).' MB';
 	if($video['bitrate'] != '-') $video['bitrate'] = round($video['bitrate']/1048576, 2).' Mb';
@@ -42,7 +42,7 @@ foreach($youtube->videos as $id => $video)
 	echo '<td>'.$video['fps'].'</td>';
 	echo '<td>'.$video['lenght'].'</td>';
 	echo '<td>'.$video['bitrate'].'</td>';
-	echo '<td><a id="link'.$id.'" href="'.$video['url'].'&title='.urlencode($youtube->title).'" download="'.$youtube->title.'.'.strtolower($video['extention']).'">Right click &gt; Save as</a></td>';
+	echo '<td><a href="'.$video['url'].'&title='.urlencode($youtube->title).'" download="'.$youtube->title.'.'.strtolower($video['extention']).'">Right click &gt; Save as</a></td>';
 	echo '</tr>';
 	
 	echo "\r\n";
