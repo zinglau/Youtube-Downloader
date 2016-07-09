@@ -62,19 +62,19 @@ class youtube
 		preg_match('#"signature",([A-Za-z]+)#', $contents, $match);
 		$function = $match[1];
 		
-		preg_match('#([A-Za-z]+):function\(a\)\{a\.reverse\(\)\}#', $contents, $match);
+		preg_match('#([A-Za-z0-9]+):function\(a\)\{a\.reverse\(\)\}#', $contents, $match);
 		$action[$match[1]] = 'reverse';
 		
-		preg_match('#([A-Za-z]+):function\(a,b\)\{a\.splice\(0,b\)\}#', $contents, $match);
+		preg_match('#([A-Za-z0-9]+):function\(a,b\)\{a\.splice\(0,b\)\}#', $contents, $match);
 		$action[$match[1]] = 'slice';
 		
-		preg_match('#([A-Za-z]+):function\(a,b\)\{var c=a\[0\];a\[0\]=a\[b%a\.length\];a\[b\]=c\}#', $contents, $match);
+		preg_match('#([A-Za-z0-9]+):function\(a,b\)\{var c=a\[0\];a\[0\]=a\[b%a\.length\];a\[b\]=c\}#', $contents, $match);
 		$action[$match[1]] = 'swap';
 		
-		preg_match('#'.$function.'=function\(a\)\{a=a\.split\(""\);\n([^\}]+)return a\.join\(""\)}#', $contents, $match);
+		preg_match('#'.$function.'=function\(a\)\{a=a\.split\(""\);([^\}]+)return a\.join\(""\)}#', $contents, $match);
 		$contents = $match[1];
 		
-		preg_match_all('#[A-Za-z]+\.([A-Za-z]+)\(a,([0-9]+)\)#', $contents, $match);
+		preg_match_all('#[A-Za-z0-9]+\.([A-Za-z0-9]+)\(a,([0-9]+)\)#', $contents, $match);
 		
 		foreach($match[0] as $key => $temp)
 		{
