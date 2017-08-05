@@ -57,7 +57,7 @@ class youtube
 	
 	private function cipher($js)
 	{
-		$contents = file_get_contents('http:'.$js, false, stream_context_create($this->context));
+		$contents = file_get_contents('https://www.youtube.com'.$js, false, stream_context_create($this->context));
 		
 		preg_match('#"signature",([A-Za-z]+)#', $contents, $match);
 		$function = $match[1];
